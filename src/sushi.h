@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define SUSHI_MAX_INPUT 80 /* really modest :) */
+#define SUSHI_MAX_INPUT 5 /* really modest :) */
 #define SUSHI_HISTORY_LENGTH 32
 #define SUSHI_DEFAULT_PROMPT "> "
 
@@ -12,5 +12,5 @@ int sushi_read_config(char *fname);
 
 void sushi_store(char *line);
 void sushi_show_history();
-  
+
 #endif

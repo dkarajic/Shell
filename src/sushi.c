@@ -5,10 +5,16 @@
 #include "sushi_history.c"
 
 int main(int argc, char *argv[]) {
-    FILE *file = fopen("test.txt", "r");
-    printf("%s", sushi_read_line(file));
-    sushi_store("abcd");
-    //sushi_read_config("test1.txt");
+    //sushi_read_config("test.txt");
+    char *text1;
+    char *text2;
+    char *text3;
+    text1 = "sample text";
+    text2 = "more of it";
+    text3 = "and then some";
+    sushi_store(text1);
+    sushi_store(text2);
+    sushi_store(text3);
+    //sushi_show_history();
     return EXIT_SUCCESS;
 }
-

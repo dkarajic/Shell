@@ -5,8 +5,6 @@
 #include <string.h>
 #include <unistd.h>
 
-static char *history[SUSHI_HISTORY_LENGTH] = {NULL};
-
 char *sushi_read_line(FILE *in) {
     char *input;
     input = (char*) malloc(SUSHI_MAX_INPUT);
@@ -14,16 +12,19 @@ char *sushi_read_line(FILE *in) {
         perror("Memory allocation failed");
         return NULL;
     }
-    char *str = fgets(input, SUSHI_MAX_INPUT, in);
-    if (str != NULL) {
-        if (strlen(str) > SUSHI_MAX_INPUT) {
-            fprintf(stderr, "Line too long, truncated");
+    fgets(input, SUSHI_MAX_INPUT, in);
+    if (input != NULL) {
+        if (input[(strlen(input)-1)] != '\n') {
+            fprintf(stderr, "Line too long, truncated\n");
         }
-        for (int i = 0; i < (int) strlen(str); i++) {
-            if (isspace(str[i]) == 0) {
+        else {
+            input[strlen(input) - 1] = '\0';
+        }
+        for (int i = 0; i < (int) strlen(input); i++) {
+            if (isspace(input[i]) == 0) {
                 break;
             }
-            else if (i == ((int) strlen(str - 1)) && isspace(str[i]) != 0) {
+            else if (i == ((int) strlen(input - 1)) && isspace(input[i]) != 0) {
                 return NULL;
             }
         }
@@ -48,6 +49,7 @@ int sushi_read_config(char *fname) {
             perror("Could not open file");
             return 1;
         }
+        fclose(file);
     }
     else {
         return 1;

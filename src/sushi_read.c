@@ -6,15 +6,11 @@
 #include <unistd.h>
 
 char *sushi_read_line(FILE *in) {
-    char *input;
-    input = (char*) malloc(SUSHI_MAX_INPUT);
-    if (input == NULL) {
-        perror("Memory allocation failed");
-        return NULL;
-    }
-    fgets(input, SUSHI_MAX_INPUT, in);
-    if (input != NULL) {
-        if (input[(strlen(input)-1)] != '\n') {
+    char input[SUSHI_MAX_INPUT]; // create static buffer
+    char *str = fgets(input, SUSHI_MAX_INPUT, in); // read into it
+    if (str != NULL) {
+        if (input[(strlen(input)-1)] != '\n') { // measure the length
+            strncpy(input, input, SUSHI_MAX_INPUT);
             fprintf(stderr, "Line too long, truncated\n");
         }
         else {
@@ -24,11 +20,19 @@ char *sushi_read_line(FILE *in) {
             if (isspace(input[i]) == 0) {
                 break;
             }
-            else if (i == ((int) strlen(input - 1)) && isspace(input[i]) != 0) {
+            else if (i == ((int) strlen(input) - 1) && isspace(input[i]) != 0) {
                 return NULL;
             }
         }
-        return input;
+        char *real_buffer = (char*) malloc(SUSHI_MAX_INPUT); // allocate a real buffer
+        if (real_buffer == NULL) {
+            perror("Memory allocation failed");
+            return NULL;
+        }
+        else {
+            strcpy(real_buffer, input); // copy the string
+            return real_buffer;
+        }
     }
     else {
         perror("I/O failed");
@@ -37,16 +41,18 @@ char *sushi_read_line(FILE *in) {
 }
 
 int sushi_read_config(char *fname) {
-    if (access(fname, F_OK) != 1) {
+    if (access(fname, F_OK) != 0) {
         FILE *file = fopen(fname, "r");
         if (file != NULL) {
             do {
-                sushi_store(sushi_read_line(file));
+                if(sushi_parse_command(sushi_read_line(file)) != 0) {
+                    sushi_store(sushi_read_line(file));
+                }
             } while((!feof(file)));
             return 0;
         }
         else {
-            perror("Could not open file");
+            perror(fname);
             return 1;
         }
         fclose(file);

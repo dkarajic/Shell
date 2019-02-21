@@ -19,7 +19,10 @@ void sushi_store(char *line) {
 void sushi_show_history() {
     for (int j = 0; j < SUSHI_HISTORY_LENGTH; j++) {
         if (history[j] != NULL) {
-            printf("%0.5d  %s\n", j+1, history[j]);
+            printf("%05d  %s\n", j+1, history[j]);
+        }
+        else {
+            break;
         }
     }
 }

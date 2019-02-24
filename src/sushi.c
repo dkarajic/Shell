@@ -2,9 +2,19 @@
 #include <stdio.h>
 #include "sushi.h"
 
-//int argc, char *argv[]
 int sushi_exit = 0;
-int main(void) {  
+
+static void refuse_to_die(int sig)
+{
+  // TODO
+}
+
+static void prevent_interruption() {
+  // TODO
+}
+
+int main(/*int argc, char *argv[]*/) {
+  prevent_interruption();  
     while(sushi_exit != 0) {
         if (sushi_read_config("$HOME/sushi.conf") == 1) {
             return EXIT_FAILURE;

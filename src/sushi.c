@@ -1,34 +1,37 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "sushi.h"
+#include <signal.h>
+#include <string.h>
 
-int sushi_exit = 0;
+int sushi_exit = 1;
 
 static void refuse_to_die(int sig)
 {
-  // TODO
+    struct sigaction action;
+    sigaction(sig, &action, NULL);
 }
 
 static void prevent_interruption() {
-  // TODO
+    signal(SIGINT, refuse_to_die);
+    fprintf(stderr, "Type exit to exit to the shell\n");
 }
 
 int main(/*int argc, char *argv[]*/) {
-  prevent_interruption();  
+    prevent_interruption();  
+    sushi_read_config(strcat(getenv("HOME"), "sushi.conf"));
     while(sushi_exit != 0) {
-        if (sushi_read_config("$HOME/sushi.conf") == 1) {
-            return EXIT_FAILURE;
-        }
         printf("%s", SUSHI_DEFAULT_PROMPT);
-        if (sushi_read_line(stdin) == NULL) {
-            return EXIT_FAILURE;
+        char *line = sushi_read_line(stdin);
+        if (line == NULL) {
+            continue;
         }
         else {
-            if(sushi_parse_command(sushi_read_line(stdin)) != 0) {
-                sushi_store(sushi_read_line(stdin));               
+            if(sushi_parse_command(line) != 0) {
+                sushi_store(line); 
             }
         }
         sushi_show_history();
-        return EXIT_SUCCESS;   
-    }
+    }  
+    return EXIT_SUCCESS; 
 }

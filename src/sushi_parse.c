@@ -52,6 +52,8 @@ char *sushi_unquote(char * s) {
                     s[j] = '?';
                     i++;
                     break;
+                default:
+                    break;
             }
         }
         else {
@@ -62,78 +64,70 @@ char *sushi_unquote(char * s) {
     return s;
 }
 
-/*
-// Alternate method
-char *sushi_unquote(char * s) {
-    for(int i = 0; i < (int) strlen(s) - 1; i++) {
-        if (s[i] == '\\') {
-            switch(s[i + 1]) {
-                case 'a':
-                    s[i] = '\a';
-                    break;
-                case 'b':
-                    s[i] = '\b';
-                    break;
-                case 'f':
-                    s[i] = '\f';
-                    break;
-                case 'n':
-                    s[i] = '\n';
-                    break;
-                case 'r':
-                    s[i] = '\r';
-                    break;
-                case 't':
-                    s[i] = '\t';
-                    break;
-                case 'v':
-                    s[i] = '\v';
-                    break; 
-                case '\\':
-                    s[i] = '\\';
-                    break;
-                case '\'':
-                    s[i] = '\'';
-                    break;
-                case '\"':
-                    s[i] = '\"';
-                    break;
-                case '?':
-                    s[i] = '?';
-                    break;
-            }
-            for (int j = i + 1; j < (int) strlen(s) - 1; j++) {
-                s[j] = s[j + 1];
-            }
-            s[(int) strlen(s) - 1] = '\0';
-        }
-    }
-    return s;
-}
-*/
-
 // Do not modify these functions
 void yyerror(const char* s) {
-  fprintf(stderr, "Parse error: %s\n", s);
+    fprintf(stderr, "Parse error: %s\n", s);
 }
 
 void __not_implemented__() {  
-  fputs("This operation is not implemented yet\n", stderr);
+    fputs("This operation is not implemented yet\n", stderr);
 }
 
 // Function skeletons for HW3
 void free_memory(prog_t *exe, prog_t *pipe) {
-  // TODO - but not this time
+    // TODO - but not this time
 }
 
 int spawn(prog_t *exe, prog_t *pipe, int bgmode) {
-  return 0; // TODO
+    int pid = fork();
+    if (pid == 0) {
+        // child
+        exe->args.args = super_realloc(exe->args.args, (exe->args.size + 1) * sizeof (char*));
+        exe->args.args[exe->args.size - 1] = NULL;
+        if (execvp(exe->args.args[0], exe->args.args) == -1) {
+            exit(0);
+        }
+    }
+    if (pid > 0) {
+        // parent
+        free_memory(exe, pipe);
+        printf("Memory freed");
+        return 0;
+        // Report any errors with perror() and return 1
+    }
+    else {
+        // failure
+        perror("Fork failed");
+        return 1;
+    }
 }
 
 void *super_malloc(size_t size) {
-  return NULL; // TODO
+    char* new_ptr = malloc(size);
+    if (new_ptr != NULL) {
+        return new_ptr;
+    }
+    else {
+        abort();
+    }
 }
 
 void *super_realloc(void *ptr, size_t size) {
-  return NULL; // TODO
+    char* new_ptr = realloc(ptr, size);
+    if (new_ptr != NULL) {
+        return new_ptr;
+    }
+    else {
+        abort();
+    }
+}
+
+char *super_strdup(const char *s) {
+    char* new_ptr = strdup(s);
+    if (new_ptr != NULL) {
+        return new_ptr;
+    }
+    else {
+        abort();
+    }
 }

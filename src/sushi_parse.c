@@ -141,7 +141,7 @@ int sushi_spawn(prog_t *exe, prog_t *pipe, int bgmode) {
             // bgmode == 0
             free_memory(exe, pipe);
             waitpid(pid, &status, 0);
-            char string[1];
+            char string[sizeof(int)];
             sprintf(string, "%d", status);
             setenv("_", string, 1);
             return 0;

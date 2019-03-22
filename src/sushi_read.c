@@ -24,7 +24,7 @@ char *sushi_read_line(FILE *in) {
                 return NULL;
             }
         }
-        char *real_buffer = (char*) super_malloc(SUSHI_MAX_INPUT); // allocate a real buffer
+        char *real_buffer = (char*) super_malloc(SUSHI_MAX_INPUT + 1); // allocate a real buffer
         if (real_buffer == NULL) {
             perror("Memory allocation failed");
             return NULL;
@@ -53,8 +53,7 @@ int sushi_read_config(char *fname) {
             return 0;
         }
         else {
-            perror(fname);
-            fclose(file);
+            //perror(fname);
             return 1;
         }
     }

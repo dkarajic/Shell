@@ -75,35 +75,70 @@ void __not_implemented__() {
 
 // Function skeletons for HW3
 void free_memory(prog_t *exe, prog_t *pipe) {
-    // TODO - but not this time
+    //free non-NULL arguments
+    for (int i = 0; i < exe->args.size, i++) {
+        if (exe->args.args[i] != NULL) {
+            free(exe->args.args[i]);
+        }
+    }
+    
+    //free array
+    free(exe->args.args);
+    
+    //free non-NULL redirection
+    if (exe->redirection != NULL) {
+        free(exe->redirection);
+    }
+    
+    //free exe
+    free(exe);
 }
 
 // Skeleton
 void sushi_assign(char *name, char *value) {
+    setenv(name, value, 1);
+    free(name);
+    free(value);
 }
 
 // Skeleton
 char *sushi_safe_getenv(char *name) {
-  return NULL; // DZ: change it!
+    var = getenv(name)
+    if (var ==  NULL) {
+        return "";
+    }
+    else {
+        return var;
+    }
 }
-
 
 int sushi_spawn(prog_t *exe, prog_t *pipe, int bgmode) {
     int pid = fork();
+    int status;
     if (pid == 0) {
         // child
         exe->args.args = super_realloc(exe->args.args, (exe->args.size + 1) * sizeof (char*));
-        exe->args.args[exe->args.size - 1] = NULL;
+        exe->args.args[exe->args.size] = NULL;
         if (execvp(exe->args.args[0], exe->args.args) == -1) {
+            perror("Error");
             exit(0);
         }
     }
     if (pid > 0) {
         // parent
-        free_memory(exe, pipe);
-        printf("Memory freed");
-        return 0;
-        // Report any errors with perror() and return 1
+        if (bgmode == 1) {
+            free_memory(exe, pipe);
+            printf("Memory freed");
+            return 0;
+        }
+        else {
+            // bgmode == 0
+            free_memory(exe, pipe);
+            waitpid(pid, status, 0);
+            char string[1];
+            sprintf(string, "%d", status);
+            setenv("_", string, 1);
+        }
     }
     else {
         // failure
@@ -113,7 +148,7 @@ int sushi_spawn(prog_t *exe, prog_t *pipe, int bgmode) {
 }
 
 void *super_malloc(size_t size) {
-    char* new_ptr = malloc(size);
+    void* new_ptr = malloc(size);
     if (new_ptr != NULL) {
         return new_ptr;
     }
@@ -123,7 +158,7 @@ void *super_malloc(size_t size) {
 }
 
 void *super_realloc(void *ptr, size_t size) {
-    char* new_ptr = realloc(ptr, size);
+    void* new_ptr = realloc(ptr, size);
     if (new_ptr != NULL) {
         return new_ptr;
     }

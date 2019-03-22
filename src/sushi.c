@@ -8,7 +8,7 @@ int sushi_exit = 0;
 
 static void refuse_to_die(int sig)
 {
-    fprintf("Type exit to exit the shell\n")
+    fprintf(stderr, "Type exit to exit the shell\n");
     struct sigaction action;
     sigaction(sig, &action, NULL);
 }

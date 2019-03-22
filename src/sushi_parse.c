@@ -76,7 +76,7 @@ void __not_implemented__() {
 // Function skeletons for HW3
 void free_memory(prog_t *exe, prog_t *pipe) {
     //free non-NULL arguments
-    for (int i = 0; i < exe->args.size, i++) {
+    for (int i = 0; i < exe->args.size; i++) {
         if (exe->args.args[i] != NULL) {
             free(exe->args.args[i]);
         }
@@ -85,9 +85,15 @@ void free_memory(prog_t *exe, prog_t *pipe) {
     //free array
     free(exe->args.args);
     
-    //free non-NULL redirection
-    if (exe->redirection != NULL) {
-        free(exe->redirection);
+    //free non-NULL redirections
+    if (exe->redirection.in != NULL) {
+        free(exe->redirection.in);
+    }
+    if (exe->redirection.out1 != NULL) {
+        free(exe->redirection.out1);
+    }
+    if (exe->redirection.out2 != NULL) {
+        free(exe->redirection.out2);
     }
     
     //free exe
@@ -103,7 +109,7 @@ void sushi_assign(char *name, char *value) {
 
 // Skeleton
 char *sushi_safe_getenv(char *name) {
-    var = getenv(name)
+    char *var = getenv(name);
     if (var ==  NULL) {
         return "";
     }
@@ -134,10 +140,11 @@ int sushi_spawn(prog_t *exe, prog_t *pipe, int bgmode) {
         else {
             // bgmode == 0
             free_memory(exe, pipe);
-            waitpid(pid, status, 0);
+            waitpid(pid, &status, 0);
             char string[1];
             sprintf(string, "%d", status);
             setenv("_", string, 1);
+            return 0;
         }
     }
     else {

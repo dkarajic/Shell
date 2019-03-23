@@ -76,7 +76,7 @@ void __not_implemented__() {
 }
 
 // Function skeletons for HW3
-void free_memory(prog_t *exe, prog_t *pipe) {
+void free_memory(prog_t *exe) {
     //free non-NULL arguments
     for (int i = 0; i < exe->args.size; i++) {
         if (exe->args.args[i] != NULL) {
@@ -120,7 +120,65 @@ char *sushi_safe_getenv(char *name) {
     }
 }
 
-int sushi_spawn(prog_t *exe, prog_t *pipe, int bgmode) {
+/*------------------------------------------------------------------
+ * You can use these "convenience" functions as building blocks for
+ * HW5 instead of your code, if you want. You may change them, too.
+ *------------------------------------------------------------------*/
+
+// Find the number of programs on the command line
+static size_t cmd_length(prog_t *exe) {
+  int count = 0;
+  while(exe->prev) {
+    exe = exe->prev;
+    count++;
+  }
+  return count;
+}
+
+// Wait for the process pid to terminate; once it does, set the
+// environmental variable "_" to the exit code of the process.
+static int wait_and_setenv(pid_t pid) {
+  int status;
+  if (-1 == waitpid(pid, &status, 0)) {
+    perror("waitpid");
+    status = 1; // Something bad happened
+  }
+  char retval[16]; // Just to be safe
+  sprintf(retval, "%d", status);
+  if(-1 == setenv("_", retval, 1)) {
+    perror("_");
+    return 1;
+  } else
+    return 0;
+}
+
+// Execute the program defined in "exe"
+static void start(prog_t *exe) {
+  arglist_t args = exe->args;
+  args.args = realloc(args.args, sizeof(char*) * (args.size + 1));
+  args.args[args.size] = (char*)NULL;
+  execvp(args.args[0], args.args);
+  perror(args.args[0]);
+}
+
+// "Rename" fule descriptor "old" to "new," if necessary. After the
+// execution of this function a program that "believes" that it uses
+// the "old" descriptor (e.g., stdout #1 for output) will be actually
+// using the "new" descriprot (e.g., an outgoinf pipe).  This
+// functions terminates the process of error and should not be used in
+// the parent, only in a child.
+static void dup_me (int new, int old) {
+  if (new != old && -1 == dup2(new, old)) {
+    perror("dup2");
+    exit(1);
+  }
+}
+
+/*--------------------------------------------------------------------
+ * End of "convenience" functions
+ *--------------------------------------------------------------------*/
+
+int sushi_spawn(prog_t *exe, int bgmode) {
     int pid = fork();
     int status;
     if (pid == 0) {
@@ -135,13 +193,13 @@ int sushi_spawn(prog_t *exe, prog_t *pipe, int bgmode) {
     if (pid > 0) {
         // parent
         if (bgmode == 1) {
-            free_memory(exe, pipe);
+            free_memory(exe);
             printf("Memory freed");
             return 0;
         }
         else {
             // bgmode == 0
-            free_memory(exe, pipe);
+            free_memory(exe);
             waitpid(pid, &status, 0);
             char string[sizeof(int)];
             sprintf(string, "%d", status);

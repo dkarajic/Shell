@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define SUSHI_MAX_INPUT 80 /* really modest :) */
 #define SUSHI_HISTORY_LENGTH 32
@@ -36,11 +37,11 @@ typedef struct {
 typedef struct prog {
   arglist_t args; // Arguments, including the program name
   redirection_t redirection; // Optional redirections
-  struct prog *next; // The next program in the pipeline, if any; NULL otherwise
+  struct prog *prev; // The previous program in the pipeline, if any; NULL otherwise
 } prog_t;
 
 // Start a new program
-int sushi_spawn(prog_t *exe, prog_t *pipe, int bgmode);
+int sushi_spawn(prog_t *exe, int bgmode);
 
 // Report unimplemented functions
 void __not_implemented__();
@@ -50,8 +51,6 @@ void __not_implemented__();
 void *super_malloc(size_t size);
 void *super_realloc(void *ptr, size_t size);
 char *super_strdup(const char *s);
-
 void sushi_assign(char *name, char *value);
 char *sushi_safe_getenv(char *name);
-
 #endif

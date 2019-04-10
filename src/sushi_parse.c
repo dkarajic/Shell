@@ -62,7 +62,7 @@ char *sushi_unquote(char * s) {
             s[j] = s[i];
         }
     }
-    s[j] = '\0';
+    // s[j] = '\0';
     return s;
 }
 
@@ -100,13 +100,20 @@ void free_memory(prog_t *exe) {
     
     //free exe
     free(exe);
+    
+    //free command line
+    free_memory(exe->prev);
 }
 
 // Skeleton
 void sushi_assign(char *name, char *value) {
-    setenv(name, value, 1);
-    free(name);
-    free(value);
+    if (setenv(name, value, 1) == 0) {
+        free(name);
+        free(value);
+    }
+    else {
+        perror(setenv(name, value, 1));
+    }
 }
 
 // Skeleton
@@ -179,38 +186,65 @@ static void dup_me (int new, int old) {
  *--------------------------------------------------------------------*/
 
 int sushi_spawn(prog_t *exe, int bgmode) {
+    // singlular solution
+    int id_array[2];
+    int pfd[2];
     int pid = fork();
     int status;
     if (pid == 0) {
         // child
+        pipe[pfd];
+        int pid2 = fork();
+        if (pid2 == 0) {
+            // grandchild
+            grandchild_id = getpid();
+            id_array[0] = grandchild_id;
+            close(pfd[0]);
+            dup2(pfd[1], 1);
+            execvp(grandchild_id, pfd);
+        }
+        if (pid2 > 0) {
+            // original child
+            child_id = getpid();
+            id_array[1] = child_id;
+            close(pfd[1]);
+            dup2(pfd[0], 0);
+            execvp(child_id, pfd)
+        }
         exe->args.args = super_realloc(exe->args.args, (exe->args.size + 1) * sizeof (char*));
         exe->args.args[exe->args.size] = NULL;
         if (execvp(exe->args.args[0], exe->args.args) == -1) {
-            perror("Error");
-            exit(0);
+            perror(execvp(exe->args.args[0]));
+            exit(1);
+            }
         }
-    }
-    if (pid > 0) {
-        // parent
-        if (bgmode == 1) {
-            free_memory(exe);
-            printf("Memory freed");
-            return 0;
+        if (pid > 0) {
+            // parent
+            if (bgmode == 1) {
+                free_memory(exe);
+                return 0;
+            }
+            else {
+                // bgmode == 0
+                free_memory(exe);
+                if (waitpid(pid, &status, 0) != 1); {
+                    char string[sizeof(char)];
+                    sprintf(string, "%d", status);
+                    setenv("_", string, 1);
+                    return 0;
+                }
+                else {
+                    perror(waitpid(pid, &status, 0));
+                }
+            }
         }
         else {
-            // bgmode == 0
-            free_memory(exe);
-            waitpid(pid, &status, 0);
-            char string[sizeof(int)];
-            sprintf(string, "%d", status);
-            setenv("_", string, 1);
-            return 0;
+            // failure
+            perror("Fork failed");
+            return 1;
         }
-    }
-    else {
-        // failure
-        perror("Fork failed");
-        return 1;
+        exe = exe->prev;
+        i++;
     }
 }
 

@@ -41,6 +41,7 @@ char *sushi_read_line(FILE *in) {
 }
 
 int sushi_read_config(char *fname, int ok_if_missing) {
+//  if (ok_if_missing != 0 || access(fname, F_OK != 0)
     if (ok_if_missing != 0) {
         if (access(fname, F_OK) != 0) {
             FILE *file = fopen(fname, "r");
@@ -64,4 +65,5 @@ int sushi_read_config(char *fname, int ok_if_missing) {
     else {
         sushi_exit = 1;
     }
+    return 0;
 }

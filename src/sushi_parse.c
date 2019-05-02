@@ -3,6 +3,7 @@
 #include <string.h>
 #include "sushi.h"
 #include "sushi_yyparser.tab.h"
+#include <fcntl.h>
 
 // https://en.wikipedia.org/wiki/Escape_sequences_in_C#Table_of_escape_sequences 
 char *sushi_unquote(char * s) {
@@ -62,7 +63,6 @@ char *sushi_unquote(char * s) {
             s[j] = s[i];
         }
     }
-    // s[j] = '\0';
     return s;
 }
 
@@ -102,7 +102,9 @@ void free_memory(prog_t *exe) {
     free(exe);
     
     //free command line
-    free_memory(exe->prev);
+    if (exe->prev != NULL) {
+        free_memory(exe->prev);
+    }
 }
 
 // Skeleton
@@ -112,7 +114,7 @@ void sushi_assign(char *name, char *value) {
         free(value);
     }
     else {
-        perror(setenv(name, value, 1));
+        perror(name);
     }
 }
 
@@ -205,7 +207,19 @@ int sushi_spawn_dz(prog_t *exe, int bgmode) {
       dup_me(pipefd[0], STDIN_FILENO);
       dup_me(old_stdout, STDOUT_FILENO);
       if(pipefd[1] != STDOUT_FILENO)
-	close(pipefd[1]);
+          close(pipefd[1]);
+            
+      // Assignment 6
+      int in = open(exe->redirection.in, O_RDONLY, 00400); // read permission
+      dup2(in, STDIN_FILENO);
+      close(in);
+      int out1 = open(exe->redirection.out1, O_WRONLY | O_CREAT, 00200); // write permission
+      dup2(out1, STDOUT_FILENO);
+      close(out1);
+      int out2 = open(exe->redirection.out2, O_APPEND, 00700); // read, write, and execute permission
+      dup2(out2, STDOUT_FILENO);
+      close(out2);
+      
       start(prog);
       exit(1);
     default: // Parent
@@ -233,68 +247,6 @@ int sushi_spawn_dz(prog_t *exe, int bgmode) {
  * End of "convenience" functions
  *--------------------------------------------------------------------*/
 
-int sushi_spawn(prog_t *exe, int bgmode) {
-    // singlular solution
-    int id_array[2];
-    int pfd[2];
-    int pid = fork();
-    int status;
-    if (pid == 0) {
-        // child
-        pipe[pfd];
-        int pid2 = fork();
-        if (pid2 == 0) {
-            // grandchild
-            grandchild_id = getpid();
-            id_array[0] = grandchild_id;
-            close(pfd[0]);
-            dup2(pfd[1], 1);
-            execvp(grandchild_id, pfd);
-        }
-        if (pid2 > 0) {
-            // original child
-            child_id = getpid();
-            id_array[1] = child_id;
-            close(pfd[1]);
-            dup2(pfd[0], 0);
-            execvp(child_id, pfd)
-        }
-        exe->args.args = super_realloc(exe->args.args, (exe->args.size + 1) * sizeof (char*));
-        exe->args.args[exe->args.size] = NULL;
-        if (execvp(exe->args.args[0], exe->args.args) == -1) {
-            perror(execvp(exe->args.args[0]));
-            exit(1);
-            }
-        }
-        if (pid > 0) {
-            // parent
-            if (bgmode == 1) {
-                free_memory(exe);
-                return 0;
-            }
-            else {
-                // bgmode == 0
-                free_memory(exe);
-                if (waitpid(pid, &status, 0) != 1); {
-                    char string[sizeof(char)];
-                    sprintf(string, "%d", status);
-                    setenv("_", string, 1);
-                    return 0;
-                }
-                else {
-                    perror(waitpid(pid, &status, 0));
-                }
-            }
-        }
-        else {
-            // failure
-            perror("Fork failed");
-            return 1;
-        }
-        exe = exe->prev;
-        i++;
-    }
-}
 
 void *super_malloc(size_t size) {
     void* new_ptr = malloc(size);
@@ -330,7 +282,20 @@ char *super_strdup(const char *s) {
  * New skeleton functions
  */
 void sushi_display_wd() {
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        fprintf(stdout, "%s", cwd);
+    }
+    else {
+        perror(getcwd(cwd, sizeof(cwd)));
+    }
 }
 
 void sushi_change_wd(char *new_wd) {
+    if (chdir(new_wd) != 0) {
+        perror("Could not change working directory");
+    }
+    else {
+        free(new_wd);
+    }
 }

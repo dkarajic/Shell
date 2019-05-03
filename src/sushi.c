@@ -5,6 +5,8 @@
 #include <string.h>
 
 int sushi_exit = 0;
+char *SHELL;
+char *PS1;
 
 static void refuse_to_die(int sig)
 {
@@ -18,12 +20,12 @@ static void prevent_interruption() {
 }
 
 int main(int argc, char *argv[]) {
-    char *SHELL = argv[0];
-    char *PS1 = "";
+    SHELL = argv[0];
+    PS1 = "";
     prevent_interruption();  
     char *string = strcat(sushi_safe_getenv("HOME"), "/sushi.conf");
-    sushi_read_config(string, 1);
-    for (int i = 0; i < (int) strlen(*argv); i++) {
+    sushi_read_config(string, 0); // changed this from 1 to 0 since it IS ok that the .conf file is missing
+    for (int i = 0; i < argc; i++) {
         if (argv[i] == NULL) {
             perror("Could not read file");
             exit(1);

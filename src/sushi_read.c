@@ -41,7 +41,6 @@ char *sushi_read_line(FILE *in) {
 }
 
 int sushi_read_config(char *fname, int ok_if_missing) {
-//  if (ok_if_missing != 0 || access(fname, F_OK != 0)
     if (ok_if_missing != 0) {
         if (access(fname, F_OK) != 0) {
             FILE *file = fopen(fname, "r");
@@ -55,15 +54,35 @@ int sushi_read_config(char *fname, int ok_if_missing) {
                 return 0;
             }
             else {
+                perror(fname);
                 return 1;
             }
         }
         else {
+            perror(fname);
             return 1;
         }
     }
     else {
-        sushi_exit = 1;
+        if (access(fname, F_OK) != 0) {
+            FILE *file = fopen(fname, "r");
+            if (file != NULL) {
+                do {
+                    if(sushi_parse_command(sushi_read_line(file)) != 0) {
+                        sushi_store(sushi_read_line(file));
+                    }
+                } while((!feof(file)));
+                fclose(file);
+                return 0;
+            }
+            else {
+                return 1;
+                sushi_exit = 1;
+            }
+        }
+        else {
+            return 1;
+            sushi_exit = 1;
+        }
     }
-    return 0;
 }

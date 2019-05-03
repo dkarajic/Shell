@@ -186,7 +186,8 @@ static void dup_me (int new, int old) {
 /*
  * You can use this function instead of yours if you want.
  */
-int sushi_spawn_dz(prog_t *exe, int bgmode) {
+// dz
+int sushi_spawn(prog_t *exe, int bgmode) {
   int pipe_length = 0, max_pipe = cmd_length(exe);
   pid_t pid[max_pipe];
 

@@ -41,6 +41,7 @@ char *sushi_read_line(FILE *in) {
 }
 
 int sushi_read_config(char *fname, int ok_if_missing) {
+  // DZ: Why have to almost exact copies of the same code?
     if (ok_if_missing != 0) {
         if (access(fname, F_OK) != 0) {
             FILE *file = fopen(fname, "r");

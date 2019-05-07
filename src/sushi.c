@@ -20,12 +20,16 @@ static void prevent_interruption() {
 }
 
 int main(int argc, char *argv[]) {
-    SHELL = argv[0];
+  // DZ: Why haven't you fixed these?
+    SHELL = argv[0];    
     PS1 = "";
-    prevent_interruption();  
+    prevent_interruption();
+    // DZ: Should not concatenate a string of unknown length and another string
     char *string = strcat(sushi_safe_getenv("HOME"), "/sushi.conf");
     sushi_read_config(string, 0); // changed this from 1 to 0 since it IS ok that the .conf file is missing
-    for (int i = 0; i < argc; i++) {
+    // DZ: From 1, not from 0
+    for (int i = 1; i < argc; i++) {
+      // DZ: This won't be possible.
         if (argv[i] == NULL) {
             perror("Could not read file");
             exit(1);
@@ -34,7 +38,9 @@ int main(int argc, char *argv[]) {
             sushi_read_config(argv[i], 1);
         }
     }
-    while(sushi_exit != 0) {
+
+    // DZ: Wrong condition check!
+    while(sushi_exit != 1) {
         if (PS1) {
             printf("%s", PS1);
         }

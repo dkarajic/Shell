@@ -99,9 +99,10 @@ void free_memory(prog_t *exe) {
     }
     
     //free exe
-    free(exe);
+    //free(exe);
     
     //free command line
+    // DZ: exe->prev does not exist anymore!
     if (exe->prev != NULL) {
         free_memory(exe->prev);
     }
@@ -211,12 +212,17 @@ int sushi_spawn(prog_t *exe, int bgmode) {
           close(pipefd[1]);
             
       // Assignment 6
+      // DZ: Must check if the fields are NOT NULL!
+      // DZ: Use symbolic names for permissions
+      // DZ: Must check returned values
       int in = open(exe->redirection.in, O_RDONLY, 00400); // read permission
       dup2(in, STDIN_FILENO);
       close(in);
+      // DZ: Must add O_TRUNC
       int out1 = open(exe->redirection.out1, O_WRONLY | O_CREAT, 00200); // write permission
       dup2(out1, STDOUT_FILENO);
       close(out1);
+      // DZ: Must add O_CREAT|O_TRUNC
       int out2 = open(exe->redirection.out2, O_APPEND, 00700); // read, write, and execute permission
       dup2(out2, STDOUT_FILENO);
       close(out2);
@@ -285,6 +291,7 @@ char *super_strdup(const char *s) {
 void sushi_display_wd() {
     char cwd[1024];
     if (getcwd(cwd, sizeof(cwd)) != NULL) {
+      // DZ: "%s\n"
         fprintf(stdout, "%s", cwd);
     }
     else {
@@ -294,6 +301,7 @@ void sushi_display_wd() {
 
 void sushi_change_wd(char *new_wd) {
     if (chdir(new_wd) != 0) {
+      // DZ: Must be perror(new_wd)
         perror("Could not change working directory");
     }
     else {
